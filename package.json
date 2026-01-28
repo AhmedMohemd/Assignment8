@@ -1,0 +1,16 @@
+{
+  "name": "assignment8-mongodb",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "start:dev": "cross-env NODE_ENV=development node src/main.js",
+    "start:prod": "cross-env NODE_ENV=production node src/main.js"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.5.2"
+  }
+}
