@@ -1,24 +1,23 @@
-import { Book } from "../../DB/model/book.model.js";
+import { db } from "../../DB/connection.db.js";
 export const createBook = async (data) => {
-  const book = await Book.create(data);
+  const result = await db.collection("books").insertOne(data);
   return {
     acknowledged: true,
-    insertedId: book._id,
+    insertedId: result.insertedId,
   };
 };
 export const createManyBooks = async (books) => {
-  const result = await Book.insertMany(books);
+  const result = await db.collection("books").insertMany(books);
   return {
     acknowledged: true,
-    insertedCount: result.length,
-    insertedIds: result.map((b) => b._id),
+    insertedCount: result.insertedCount,
+    insertedIds: Object.values(result.insertedIds),
   };
 };
 export const updateFutureBook = async () => {
-  const result = await Book.updateOne(
-    { title: "Future" },
-    { $set: { year: 2022 } },
-  );
+  const result = await db
+    .collection("books")
+    .updateOne({ title: "Future" }, { $set: { year: 2022 } });
   return {
     acknowledged: true,
     matchedCount: result.matchedCount,
@@ -26,56 +25,82 @@ export const updateFutureBook = async () => {
   };
 };
 export const findBookByTitle = async (title) => {
-  return await Book.find({ title });
+  return await db.collection("books").find({ title }).toArray();
 };
 export const findBooksBetweenYears = async (from, to) => {
-  return await Book.find({ year: { $gte: from, $lte: to } });
+  return await db
+    .collection("books")
+    .find({ year: { $gte: from, $lte: to } })
+    .toArray();
 };
 export const findBooksByGenre = async (genre) => {
-  return await Book.find({ genres: genre });
+  return await db.collection("books").find({ genres: genre }).toArray();
 };
 export const findWithSkipLimit = async () => {
-  return await Book.find().sort({ year: -1 }).skip(2).limit(3);
+  return await db
+    .collection("books")
+    .find()
+    .sort({ year: -1 })
+    .skip(2)
+    .limit(3)
+    .toArray();
 };
 export const findYearInteger = async () => {
-  return await Book.find({ year: { $type: "int" } });
+  return await db
+    .collection("books")
+    .find({ year: { $type: "int" } })
+    .toArray();
 };
 export const excludeGenres = async () => {
-  return await Book.find({
-    genres: { $nin: ["Horror", "Science Fiction"] },
-  });
+  return await db
+    .collection("books")
+    .find({
+      genres: { $nin: ["Horror", "Science Fiction"] },
+    })
+    .toArray();
 };
 export const deleteBooksBeforeYear = async (year) => {
-  const result = await Book.deleteMany({ year: { $lt: year } });
+  const result = await db
+    .collection("books")
+    .deleteMany({ year: { $lt: year } });
   return {
     acknowledged: true,
     deletedCount: result.deletedCount,
   };
 };
 export const aggregate1 = async () => {
-  return await Book.aggregate([
-    { $match: { year: { $gt: 2000 } } },
-    { $sort: { year: -1 } },
-  ]);
+  return await db
+    .collection("books")
+    .aggregate([{ $match: { year: { $gt: 2000 } } }, { $sort: { year: -1 } }])
+    .toArray();
 };
 export const aggregate2 = async () => {
-  return await Book.aggregate([
-    { $match: { year: { $gt: 2000 } } },
-    { $project: { _id: 0, title: 1, author: 1, year: 1 } },
-  ]);
+  return await db
+    .collection("books")
+    .aggregate([
+      { $match: { year: { $gt: 2000 } } },
+      { $project: { _id: 0, title: 1, author: 1, year: 1 } },
+    ])
+    .toArray();
 };
 export const aggregate3 = async () => {
-  return await Book.aggregate([{ $unwind: "$genres" }]);
+  return await db
+    .collection("books")
+    .aggregate([{ $unwind: "$genres" }])
+    .toArray();
 };
 export const aggregate4 = async () => {
-  return await Book.aggregate([
-    {
-      $lookup: {
-        from: "logs",
-        localField: "_id",
-        foreignField: "book_id",
-        as: "logs",
+  return await db
+    .collection("books")
+    .aggregate([
+      {
+        $lookup: {
+          from: "logs",
+          localField: "_id",
+          foreignField: "book_id",
+          as: "logs",
+        },
       },
-    },
-  ]);
+    ])
+    .toArray();
 };

@@ -1,8 +1,14 @@
-import { Log } from "../../DB/model/log.model.js";
+import { db } from "../../DB/connection.db.js";
+import { ObjectId } from "mongodb";
 export const createLog = async (data) => {
-  const log = await Log.create(data);
+  const logData = {
+    ...data,
+    book_id: new ObjectId(data.book_id),
+    date: new Date(),
+  };
+  const result = await db.collection("logs").insertOne(logData);
   return {
     acknowledged: true,
-    insertedId: log._id,
+    insertedId: result.insertedId,
   };
 };

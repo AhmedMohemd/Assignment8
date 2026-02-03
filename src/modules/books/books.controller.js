@@ -66,7 +66,7 @@ router.get("/year-integer", async (req, res, next) => {
     next(error);
   }
 });
-router.get("/exclude-genres", async (req, res, next) => {
+router.get("/excluded-genres", async (req, res, next) => {
   try {
     const result = await service.excludeGenres();
     return res.status(200).json(result);
