@@ -1,0 +1,166 @@
+Assignment 8 - MongoDB Shell
+-----------------------------
+Data Name => use assignment8;
+==========================================================================
+1 : Create books collection  with validation
+---------
+db.createCollection("books", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["title"],
+      properties: {
+        title: {
+          bsonType: "string",
+          minLength: 1
+        }
+      }
+    }
+  }
+});
+==========================================================================
+2 : Create  authors collection 
+---------
+db.authors.insertOne({
+  name: "Author1"
+});
+==========================================================================
+3 : Create capped logs collection with size 1MB
+---------
+db.createCollection("logs", {
+  capped: true,
+  size: 1024 * 1024
+});
+==========================================================================
+4 : Create books index on title
+---------
+db.books.createIndex({ title: 1 });
+==========================================================================
+5 : Insert one document into books
+---------
+db.books.insertOne({
+  title: "Future",
+  author: "John Doe",
+  year: 2020,
+  genres: ["Science Fiction"]
+});
+==========================================================================
+6 : Insert multiple documents into books
+---------
+db.books.insertMany([
+  {
+    title: "Brave New World",
+    author: "Aldous Huxley",
+    year: 1932,
+    genres: ["Science Fiction", "Dystopian"]
+  },
+  {
+    title: "The Road",
+    author: "Cormac McCarthy",
+    year: 2006,
+    genres: ["Drama"]
+  },
+  {
+    title: "The Hobbit",
+    author: "J.R.R. Tolkien",
+    year: 1997,
+    genres: ["Fantasy"]
+  }
+]);
+==========================================================================
+7 : Insert a log into logs collection
+---------
+db.logs.insertOne({
+  book_id: db.books.findOne({ title: "Future" })._id,
+  action: "CREATE_BOOK",
+  date: new Date()
+});
+==========================================================================
+8 : Update book with title (Future) to year 2022
+---------
+db.books.updateOne(
+  { title: "Future" },
+  { $set: { year: 2022 } }
+);
+==========================================================================
+9 : Find book with title "Brave New World"
+---------
+db.books.find({ title: "Brave New World" });
+==========================================================================
+10 : Find books published between 1990 and 2010
+---------
+db.books.find({
+  year: { $gte: 1990, $lte: 2010 }
+});
+==========================================================================
+11 : Find books where genre includes "Science Fiction"
+---------
+db.books.find({
+  genres: "Science Fiction"
+});
+==========================================================================
+12 : Skip first 2 books, limit next 3, sort by year desc
+---------
+db.books.find()
+  .sort({ year: -1 })
+  .skip(2)
+  .limit(3);
+==========================================================================
+13 : Find books where year is stored as integer
+---------
+db.books.find({
+  year: { $type: "int" }
+});
+==========================================================================
+14 : Find books excluding Horror & Science Fiction
+---------
+db.books.find({
+  genres: { $nin: ["Horror", "Science Fiction"] }
+});
+==========================================================================
+15 : Delete books published before 2000
+---------
+db.books.deleteMany({
+  year: { $lt: 2000 }
+});
+==========================================================================
+16 : Aggregation: books after 2000 sorted by year desc
+---------
+db.books.aggregate([
+  { $match: { year: { $gt: 2000 } } },
+  { $sort: { year: -1 } }
+]);
+==========================================================================
+17 : Aggregation: show title, author, year only
+---------
+db.books.aggregate([
+  { $match: { year: { $gt: 2000 } } },
+  {
+    $project: {
+      _id: 0,
+      title: 1,
+      author: 1,
+      year: 1
+    }
+  }
+]);
+==========================================================================
+18 : Aggregation: unwind genres
+---------
+db.books.aggregate([
+  { $unwind: "$genres" }
+]);
+==========================================================================
+19 : Aggregation: join books with logs
+---------
+db.books.aggregate([
+  {
+    $lookup: {
+      from: "logs",
+      localField: "_id",
+      foreignField: "book_id",
+      as: "logs"
+    }
+  }
+]);
+==========================================================================
